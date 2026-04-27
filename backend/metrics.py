@@ -1,12 +1,13 @@
-from sentence_transformers import SentenceTransformer
 import numpy as np
 
-model = SentenceTransformer("all-MiniLM-L6-v2")
+def simple_similarity(a, b):
+    a_words = set(a.lower().split())
+    b_words = set(b.lower().split())
 
-def semantic_score(a, b):
-    v1 = model.encode(a)
-    v2 = model.encode(b)
-    return float(np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2)))
+    if not a_words:
+        return 0
+
+    return len(a_words.intersection(b_words)) / len(a_words)
 
 def length_score(answer):
     words = len(answer.split())
@@ -19,32 +20,13 @@ def length_score(answer):
     else:
         return 0.1
 
-def keyword_score(prompt, answer):
-    prompt_words = set(prompt.lower().split())
-    answer_words = set(answer.lower().split())
-    common = prompt_words.intersection(answer_words)
-
-    return min(len(common) / (len(prompt_words) + 1), 0.5)
-
 def final_score(prompt, answer):
-    sem = semantic_score(answer, prompt)
+    sim = simple_similarity(prompt, answer)
     length = length_score(answer)
-    keyword = keyword_score(prompt, answer)
 
-    base = (0.5 * sem + 0.3 * length + 0.2 * keyword)
+    score = (0.6 * sim + 0.4 * length)
 
-    # penalties
     if length < 0.2:
-        base *= 0.4
-    if sem < 0.3:
-        base *= 0.5
+        score *= 0.5
 
-    # boost good answers
-    if sem > 0.75 and length > 0.6:
-        base *= 1.2
-
-    # normalize
-    stretched = (base - 0.2) / (0.9 - 0.2)
-    stretched = max(0, min(stretched, 1))
-
-    return round(stretched * 100, 2)
+    return round(score * 100, 2)
