@@ -39,27 +39,22 @@ def clarity_score(answer):
     if not words:
         return 0.3
 
-    avg_word_len = sum(len(w) for w in words) / len(words)
+    avg = sum(len(w) for w in words) / len(words)
 
-    if avg_word_len > 5:
+    if avg > 5:
         return 0.9
-    elif avg_word_len > 4:
+    elif avg > 4:
         return 0.7
     else:
         return 0.5
 
 
 def evaluate_metrics(prompt, answer):
-    k = keyword_overlap(prompt, answer)
-    l = length_score(answer)
-    s = structure_score(answer)
-    c = clarity_score(answer)
-
     return {
-        "relevance": round(k * 100, 2),
-        "depth": round(l * 100, 2),
-        "structure": round(s * 100, 2),
-        "clarity": round(c * 100, 2),
+        "relevance": round(keyword_overlap(prompt, answer) * 100, 2),
+        "depth": round(length_score(answer) * 100, 2),
+        "structure": round(structure_score(answer) * 100, 2),
+        "clarity": round(clarity_score(answer) * 100, 2),
     }
 
 

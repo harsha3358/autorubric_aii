@@ -9,16 +9,16 @@ from database import cursor, conn
 
 app = FastAPI()
 
-# ✅ CORS FIX
+# ✅ CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # restrict later if needed
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Input schema
+# Schema
 class Input(BaseModel):
     prompt: str
     answer: str
@@ -34,24 +34,15 @@ def evaluate(data: Input):
     metrics = evaluate_metrics(data.prompt, data.answer)
     score = final_score(metrics)
 
-    # 🔥 PROFESSIONAL RUBRIC
     rubric = f"""
 Evaluation Rubric
 
 1. Relevance ({metrics['relevance']}%)
-   Measures alignment with the given prompt.
-
 2. Depth ({metrics['depth']}%)
-   Evaluates completeness and level of detail.
-
 3. Structure ({metrics['structure']}%)
-   Assesses logical organization and flow.
-
 4. Clarity ({metrics['clarity']}%)
-   Measures readability and articulation.
 """
 
-    # 🔥 PROFESSIONAL FEEDBACK
     if score > 85:
         feedback = "Excellent response with strong clarity, depth, and relevance."
     elif score > 70:
@@ -61,7 +52,6 @@ Evaluation Rubric
     else:
         feedback = "Weak response. Lacks clarity, depth, and alignment with the prompt."
 
-    # 🔥 REASONING
     reasoning = [
         f"Relevance Score: {metrics['relevance']}%",
         f"Depth Score: {metrics['depth']}%",
@@ -69,19 +59,66 @@ Evaluation Rubric
         f"Clarity Score: {metrics['clarity']}%"
     ]
 
-    # Save to DB
+    record_id = str(uuid.uuid4())
+
     cursor.execute(
         "INSERT INTO results VALUES (?,?,?,?,?)",
-        (str(uuid.uuid4()), data.prompt, data.answer, score, feedback)
+        (record_id, data.prompt, data.answer, score, feedback)
     )
     conn.commit()
 
     return {
+        "id": record_id,
         "score": score,
         "feedback": feedback,
         "rubric": rubric,
         "reasoning": reasoning
     }
+
+
+# 📊 GET ALL RESULTS
+@app.get("/results")
+def get_results():
+    cursor.execute("SELECT * FROM results")
+    rows = cursor.fetchall()
+
+    results = []
+    for r in rows:
+        results.append({
+            "id": r[0],
+            "prompt": r[1],
+            "answer": r[2],
+            "score": r[3],
+            "feedback": r[4]
+        })
+
+    return results
+
+
+# 🔍 GET SINGLE RESULT
+@app.get("/results/{record_id}")
+def get_single(record_id: str):
+    cursor.execute("SELECT * FROM results WHERE id=?", (record_id,))
+    r = cursor.fetchone()
+
+    if not r:
+        return {"error": "Not found"}
+
+    return {
+        "id": r[0],
+        "prompt": r[1],
+        "answer": r[2],
+        "score": r[3],
+        "feedback": r[4]
+    }
+
+
+# 🧹 CLEAR DATABASE (for demo reset)
+@app.delete("/clear")
+def clear_db():
+    cursor.execute("DELETE FROM results")
+    conn.commit()
+    return {"message": "All records deleted"}
 
 
 # 🔥 RENDER PORT FIX
