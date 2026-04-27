@@ -10,50 +10,42 @@ from database import cursor, conn
 
 app = FastAPI()
 
-# ✅ CORS FIX (CRITICAL)
+# 🔥 STRICT CORS FIX (IMPORTANT)
+origins = [
+    "https://autorubricaii.vercel.app",
+    "http://localhost:3000"
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # you can restrict later
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Request schema
 class Input(BaseModel):
     prompt: str
     answer: str
 
-# Health check
 @app.get("/")
 def home():
-    return {"status": "AutoRubric backend running"}
+    return {"status": "running"}
 
-# Main endpoint
 @app.post("/evaluate")
 def evaluate(data: Input):
-
-    # 🔥 Single LLM call (optimized)
     combined_prompt = f"""
-    Evaluate the following answer.
+    Evaluate the answer.
 
-    Prompt:
-    {data.prompt}
+    Prompt: {data.prompt}
+    Answer: {data.answer}
 
-    Answer:
-    {data.answer}
-
-    Provide:
-    1. Short rubric (3 points)
-    2. Feedback (concise)
+    Give rubric and feedback.
     """
 
     llm_output = generate(combined_prompt)
-
-    # Scoring
     score = final_score(data.prompt, data.answer)
 
-    # Store in DB
     cursor.execute(
         "INSERT INTO results VALUES (?,?,?,?,?)",
         (str(uuid.uuid4()), data.prompt, data.answer, score, llm_output)
@@ -66,8 +58,7 @@ def evaluate(data: Input):
         "rubric": "Included in feedback"
     }
 
-
-# 🔥 RENDER PORT FIX
+# 🔥 REQUIRED FOR RENDER
 if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 10000))
