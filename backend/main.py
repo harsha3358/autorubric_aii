@@ -3,66 +3,67 @@ from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 
 import uuid
-import asyncio
-from functools import lru_cache
 
 from llm import generate
 from metrics import final_score
 from database import cursor, conn
 
+# 🔥 INIT APP
 app = FastAPI()
 
-# CORS (important for frontend)
+# 🔥 CORS FIX (CRITICAL FOR VERCEL FRONTEND)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # allow all origins (safe for demo)
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# 🔹 INPUT SCHEMA
 class Input(BaseModel):
     prompt: str
     answer: str
 
-# 🔥 CACHE LLM CALLS
-@lru_cache(maxsize=100)
-def cached_generate(prompt: str):
-    return generate(prompt)
-
-# 🔥 PARALLEL EXECUTION
-async def get_outputs(prompt, answer):
-    loop = asyncio.get_event_loop()
-
-    combined_prompt = f"""
-    Generate a short rubric and feedback.
-
-    Prompt: {prompt}
-    Answer: {answer}
-
-    Output:
-    Rubric:
-    Feedback:
-    """
-
-    result = await loop.run_in_executor(None, cached_generate, combined_prompt)
-
-    return result
-
+# 🔹 HEALTH CHECK
 @app.get("/")
 def home():
     return {"status": "AutoRubric backend running"}
 
-#  MAIN ENDPOINT
+# 🔹 MAIN EVALUATION ENDPOINT
 @app.post("/evaluate")
-async def evaluate(data: Input):
+def evaluate(data: Input):
 
-    output = await get_outputs(data.prompt, data.answer)
+    # 🔥 SINGLE LLM CALL (FAST)
+    combined_prompt = f"""
+    Evaluate the following answer.
 
+    Prompt:
+    {data.prompt}
+
+    Answer:
+    {data.answer}
+
+    Provide:
+    1. Short rubric (3-4 points)
+    2. Feedback (concise)
+    """
+
+    llm_output = generate(combined_prompt)
+
+    # 🔹 SCORING (LIGHTWEIGHT)
     score = final_score(data.prompt, data.answer)
 
+    # 🔹 STORE RESULT
+    cursor.execute(
+        "INSERT INTO results VALUES (?,?,?,?,?)",
+        (str(uuid.uuid4()), data.prompt, data.answer, score, llm_output)
+    )
+    conn.commit()
+
+    # 🔹 RESPONSE
     return {
         "score": score,
-        "feedback": output,
-        "rubric": "Generated within feedback"
+        "feedback": llm_output,
+        "rubric": "Included in feedback"
     }
