@@ -1,11 +1,9 @@
 import os
 import requests
 
-# 🔐 Get token from environment (Render)
 HF_TOKEN = os.getenv("HF_TOKEN")
 
-# ⚡ Faster model (you can switch if needed)
-API_URL = "https://api-inference.huggingface.co/models/google/gemma-2b"
+API_URL = "https://api-inference.huggingface.co/models/Qwen/Qwen2-1.5B"
 
 headers = {
     "Authorization": f"Bearer {HF_TOKEN}"
@@ -15,7 +13,7 @@ def generate(prompt: str):
     payload = {
         "inputs": prompt,
         "parameters": {
-            "max_new_tokens": 120,   # reduced for speed
+            "max_new_tokens": 120,
             "temperature": 0.7,
             "return_full_text": False
         }
@@ -26,7 +24,7 @@ def generate(prompt: str):
             API_URL,
             headers=headers,
             json=payload,
-            timeout=8   # 🔥 prevents hanging
+            timeout=8
         )
 
         if response.status_code != 200:
@@ -34,14 +32,13 @@ def generate(prompt: str):
 
         data = response.json()
 
-        # Handle HF response format
         if isinstance(data, list):
             return data[0].get("generated_text", "").strip()
 
         return str(data)
 
     except requests.exceptions.Timeout:
-        return "Request timed out. Please try again."
+        return "Request timed out. Try again."
 
     except Exception:
-        return "Model is busy. Try again shortly."
+        return "Model is busy. Try later."

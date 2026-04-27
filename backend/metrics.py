@@ -1,5 +1,3 @@
-import numpy as np
-
 def simple_similarity(a, b):
     a_words = set(a.lower().split())
     b_words = set(b.lower().split())
@@ -11,6 +9,7 @@ def simple_similarity(a, b):
 
 def length_score(answer):
     words = len(answer.split())
+
     if words > 80:
         return 1.0
     elif words > 40:
