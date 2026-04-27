@@ -1,6 +1,6 @@
 let radar, ring;
 
-const API_URL = "https://YOUR-RENDER-URL.onrender.com/evaluate";
+const API_URL = "https://autorubric-backend.onrender.com/evaluate";
 
 // Theme toggle
 function toggleTheme() {
