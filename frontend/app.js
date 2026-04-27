@@ -138,6 +138,25 @@ async function runEvaluation() {
     const rubricHtml = marked.parse(data.rubric || "No rubric available.");
     document.getElementById("rubric").innerHTML = rubricHtml;
 
+    // Extract actual metrics from backend "reasoning" array
+    // Format is "MetricName Score: 80%"
+    const metrics = {};
+    if (data.reasoning && Array.isArray(data.reasoning)) {
+      data.reasoning.forEach(r => {
+        const parts = r.split(" Score: ");
+        if (parts.length === 2) {
+          const name = parts[0];
+          const val = parseFloat(parts[1].replace("%", ""));
+          metrics[name] = val;
+        }
+      });
+    } else {
+      metrics["Relevance"] = data.score || 0;
+      metrics["Clarity"] = data.score || 0;
+      metrics["Depth"] = data.score || 0;
+      metrics["Structure"] = data.score || 0;
+    }
+
     // Radar chart
     if (radar) radar.destroy();
 
@@ -148,10 +167,10 @@ async function runEvaluation() {
     radar = new Chart(document.getElementById("radarChart"), {
       type: "radar",
       data: {
-        labels: ["Clarity", "Depth", "Relevance"],
+        labels: ["Relevance", "Clarity", "Depth", "Structure"],
         datasets: [{
           label: "Score Breakdown",
-          data: [Math.min(100, (data.score || 0) * 1.1), Math.max(0, (data.score || 0) * 0.8), (data.score || 0)],
+          data: [metrics["Relevance"], metrics["Clarity"], metrics["Depth"], metrics["Structure"]],
           backgroundColor: "rgba(34, 197, 94, 0.2)",
           borderColor: "#22c55e",
           pointBackgroundColor: "#22c55e",
@@ -178,26 +197,39 @@ async function runEvaluation() {
       }
     });
 
-    // Reasoning
-    const list = document.getElementById("reasoning");
-    list.innerHTML = "";
+    // Detailed Breakdown Progress Bars
+    const breakdownContainer = document.getElementById("detailedBreakdown");
+    if(breakdownContainer) {
+      breakdownContainer.innerHTML = "";
+      
+      const criteriaKeys = ["Relevance", "Clarity", "Depth", "Structure"];
+      criteriaKeys.forEach(key => {
+        const val = metrics[key];
+        let barColor = "bg-brand-500";
+        if (val < 50) barColor = "bg-red-500";
+        else if (val < 80) barColor = "bg-amber-500";
 
-    generateReasoning(data.score || 0).forEach(r => {
-      const li = document.createElement("li");
-      li.className = "flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300";
-      
-      const icon = document.createElement("i");
-      icon.className = "fas fa-check-circle text-brand-500 mt-1";
-      if (data.score < 50) icon.className = "fas fa-exclamation-circle text-red-500 mt-1";
-      else if (data.score < 80) icon.className = "fas fa-info-circle text-amber-500 mt-1";
-      
-      const span = document.createElement("span");
-      span.textContent = r;
-      
-      li.appendChild(icon);
-      li.appendChild(span);
-      list.appendChild(li);
-    });
+        const barHtml = `
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">${key}</span>
+              <span class="text-sm font-semibold text-gray-900 dark:text-white">${val}%</span>
+            </div>
+            <div class="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2">
+              <div class="${barColor} h-2 rounded-full transition-all duration-1000 ease-out" style="width: 0%" data-width="${val}%"></div>
+            </div>
+          </div>
+        `;
+        breakdownContainer.innerHTML += barHtml;
+      });
+
+      // Animate progress bars
+      setTimeout(() => {
+        breakdownContainer.querySelectorAll('[data-width]').forEach(el => {
+          el.style.width = el.getAttribute('data-width');
+        });
+      }, 300);
+    }
 
     // Trigger reveal animations
     setTimeout(revealSections, 100);
@@ -211,7 +243,9 @@ async function runEvaluation() {
     drawRing(0);
     document.getElementById("feedback").innerText = "Unable to connect to the backend service. Please check your network or try again later.";
     document.getElementById("rubric").innerHTML = "<p class='text-red-500 font-medium'>No data available due to connection failure.</p>";
-    document.getElementById("reasoning").innerHTML = "<li class='text-red-500 flex items-center gap-2'><i class='fas fa-times-circle'></i> Connection failure</li>";
+    if(document.getElementById("detailedBreakdown")) {
+        document.getElementById("detailedBreakdown").innerHTML = "<p class='text-red-500 text-sm flex items-center gap-2'><i class='fas fa-times-circle'></i> Connection failure</p>";
+    }
     
     setTimeout(revealSections, 100);
   } finally {
