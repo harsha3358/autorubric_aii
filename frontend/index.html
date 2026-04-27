@@ -9,41 +9,78 @@
 
 <style>
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "San Francisco", sans-serif;
-  transition: all 0.3s ease;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
-/* Background */
+/* Light / Dark backgrounds */
 body.light {
-  background: linear-gradient(135deg, #f8fafc, #eef2f7);
+  background: #f5f7fa;
+  color: #111827;
 }
 body.dark {
-  background: linear-gradient(135deg, #0f172a, #020617);
+  background: #0b1220;
+  color: #e5e7eb;
 }
 
-/* Glass */
-.glass {
-  background: rgba(255,255,255,0.6);
-  backdrop-filter: blur(20px);
-  border-radius: 20px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+/* Container */
+.container-box {
+  max-width: 900px;
+  margin: auto;
 }
-.dark .glass {
-  background: rgba(30,41,59,0.6);
+
+/* Card */
+.card {
+  background: white;
+  border-radius: 14px;
+  padding: 20px;
+  border: 1px solid #e5e7eb;
+  transition: all 0.3s ease;
+}
+.dark .card {
+  background: #111827;
+  border-color: #1f2937;
+}
+
+/* Inputs */
+.input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  background: white;
+  color: black;
+}
+.dark .input {
+  background: #020617;
   color: white;
+  border-color: #374151;
 }
 
-/* Scroll */
+/* Button */
+.btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  background: #111827;
+  color: white;
+  transition: 0.2s;
+}
+.btn:hover {
+  background: #1f2937;
+}
+
+/* Scroll panels */
 .scroll-box {
   max-height: 160px;
   overflow-y: auto;
 }
 
-/* Reveal */
+/* Reveal animation */
 .reveal {
   opacity: 0;
-  transform: translateY(15px);
-  transition: all 0.5s ease;
+  transform: translateY(10px);
+  transition: all 0.4s ease;
 }
 .reveal.show {
   opacity: 1;
@@ -52,89 +89,82 @@ body.dark {
 
 /* Loader */
 .loader {
-  border: 4px solid #e5e7eb;
-  border-top: 4px solid #6366f1;
+  width: 26px;
+  height: 26px;
+  border: 3px solid #d1d5db;
+  border-top: 3px solid #111827;
   border-radius: 50%;
-  width: 28px;
-  height: 28px;
   animation: spin 1s linear infinite;
 }
-@keyframes spin { 100% { transform: rotate(360deg); } }
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
 </style>
 </head>
 
-<body class="light flex justify-center items-center min-h-screen p-6">
+<body class="light p-6">
 
-<div class="w-full max-w-3xl glass p-8">
+<div class="container-box">
 
 <!-- HEADER -->
-<div class="flex justify-between items-center mb-4">
-  <h1 class="text-2xl font-semibold">
-    AutoRubric AI 🍎
-  </h1>
+<div class="flex justify-between items-center mb-6">
+  <h1 class="text-xl font-semibold">AutoRubric AI</h1>
 
-  <button onclick="toggleTheme()"
-    class="px-3 py-1 rounded-full bg-gray-200 dark:bg-gray-700">
-    🌗
+  <button onclick="toggleTheme()" class="text-sm border px-3 py-1 rounded">
+    Toggle Theme
   </button>
 </div>
 
-<!-- INPUTS -->
-<textarea id="prompt" placeholder="Enter assignment prompt..."
-class="w-full p-3 border rounded mb-3 
-bg-white text-black 
-dark:bg-gray-800 dark:text-white 
-placeholder-gray-400 
-focus:outline-none focus:ring-2 focus:ring-indigo-400">
-</textarea>
+<!-- INPUT -->
+<div class="card mb-4">
+  <textarea id="prompt" placeholder="Enter prompt"
+  class="input mb-3"></textarea>
 
-<textarea id="answer" placeholder="Enter student answer..."
-class="w-full p-3 border rounded mb-3 
-bg-white text-black 
-dark:bg-gray-800 dark:text-white 
-placeholder-gray-400 
-focus:outline-none focus:ring-2 focus:ring-indigo-400">
-</textarea>
+  <textarea id="answer" placeholder="Enter answer"
+  class="input mb-3"></textarea>
 
-<button onclick="runEvaluation()"
-class="w-full bg-indigo-500 text-white py-2 rounded transition active:scale-95">
-Evaluate
-</button>
-
-<!-- Loader -->
-<div id="loading" class="hidden mt-4 flex flex-col items-center">
-<div class="loader"></div>
-<p class="mt-2 text-gray-500">Thinking...</p>
+  <button onclick="runEvaluation()" class="btn">
+    Evaluate
+  </button>
 </div>
 
-<!-- RESULT -->
+<!-- LOADING -->
+<div id="loading" class="hidden text-center mt-4">
+  <div class="loader mx-auto"></div>
+  <p class="text-sm mt-2 text-gray-500">Processing</p>
+</div>
+
+<!-- RESULTS -->
 <div id="result" class="hidden mt-6 space-y-4">
 
-<!-- Score -->
-<div class="glass p-4 reveal text-center">
-<canvas id="scoreRing" width="120" height="120"></canvas>
-<p id="scoreText" class="mt-2 font-semibold text-indigo-600"></p>
-</div>
+  <!-- SCORE -->
+  <div class="card reveal text-center">
+    <canvas id="scoreRing" width="120" height="120"></canvas>
+    <p id="scoreText" class="mt-2 font-medium"></p>
+  </div>
 
-<!-- Radar -->
-<div class="glass p-4 reveal">
-<canvas id="radarChart"></canvas>
-</div>
+  <!-- CHART -->
+  <div class="card reveal">
+    <canvas id="radarChart"></canvas>
+  </div>
 
-<!-- Feedback -->
-<div class="glass p-4 scroll-box reveal">
-<p id="feedback"></p>
-</div>
+  <!-- FEEDBACK -->
+  <div class="card reveal scroll-box">
+    <h3 class="text-sm font-medium mb-2">Feedback</h3>
+    <p id="feedback" class="text-sm"></p>
+  </div>
 
-<!-- Reasoning -->
-<div class="glass p-4 scroll-box reveal">
-<ul id="reasoning"></ul>
-</div>
+  <!-- REASONING -->
+  <div class="card reveal scroll-box">
+    <h3 class="text-sm font-medium mb-2">Reasoning</h3>
+    <ul id="reasoning" class="text-sm space-y-1"></ul>
+  </div>
 
-<!-- Rubric -->
-<div class="glass p-4 scroll-box reveal">
-<pre id="rubric"></pre>
-</div>
+  <!-- RUBRIC -->
+  <div class="card reveal scroll-box">
+    <h3 class="text-sm font-medium mb-2">Rubric</h3>
+    <pre id="rubric" class="text-sm whitespace-pre-wrap"></pre>
+  </div>
 
 </div>
 

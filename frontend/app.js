@@ -1,5 +1,7 @@
 let radar, ring;
 
+const API_URL = "https://YOUR-RENDER-URL.onrender.com/evaluate";
+
 // Theme toggle
 function toggleTheme() {
   if (document.body.classList.contains("dark")) {
@@ -13,7 +15,7 @@ function toggleTheme() {
   }
 }
 
-// Load saved theme
+// Load theme
 window.onload = () => {
   const theme = localStorage.getItem("theme");
   if (theme === "dark") {
@@ -25,7 +27,7 @@ window.onload = () => {
 // Reveal animation
 function revealSections() {
   document.querySelectorAll(".reveal").forEach((el, i) => {
-    setTimeout(() => el.classList.add("show"), i * 200);
+    setTimeout(() => el.classList.add("show"), i * 150);
   });
 }
 
@@ -37,7 +39,7 @@ function typeText(el, text) {
     if (i < text.length) {
       el.innerHTML += text.charAt(i);
       i++;
-      setTimeout(type, 10);
+      setTimeout(type, 8);
     }
   }
   type();
@@ -63,13 +65,13 @@ function drawRing(score) {
   document.getElementById("scoreText").innerText = score + "%";
 }
 
-// Reasoning logic
+// Reasoning
 function generateReasoning(score) {
   if (score > 80)
-    return ["Strong clarity", "Well structured", "Good coverage"];
+    return ["Strong clarity", "Well structured", "Covers key aspects"];
   if (score > 50)
-    return ["Basic idea present", "Needs depth", "Limited explanation"];
-  return ["Weak answer", "Missing key concepts", "Needs improvement"];
+    return ["Basic understanding present", "Needs more depth"];
+  return ["Insufficient explanation", "Missing key concepts"];
 }
 
 // Main function
@@ -84,7 +86,7 @@ async function runEvaluation() {
   result.classList.add("hidden");
 
   try {
-    const res = await fetch("http://127.0.0.1:8000/evaluate", {
+    const res = await fetch(API_URL, {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({ prompt, answer })
@@ -111,7 +113,7 @@ async function runEvaluation() {
       data: {
         labels: ["Clarity", "Depth", "Relevance"],
         datasets: [{
-          label: "Metrics",
+          label: "Evaluation",
           data: [data.score * 0.9, data.score * 0.8, data.score]
         }]
       }
@@ -123,12 +125,22 @@ async function runEvaluation() {
 
     generateReasoning(data.score).forEach(r => {
       const li = document.createElement("li");
-      li.textContent = "• " + r;
+      li.textContent = r;
       list.appendChild(li);
     });
 
   } catch (err) {
-    console.error(err);
-    loading.innerHTML = "❌ Connection issue";
+    loading.classList.add("hidden");
+    result.classList.remove("hidden");
+
+    drawRing(0);
+
+    document.getElementById("feedback").innerText =
+      "Unable to connect to the backend service.";
+
+    document.getElementById("rubric").innerText = "No data available.";
+
+    document.getElementById("reasoning").innerHTML =
+      "<li>Connection failure</li>";
   }
 }
