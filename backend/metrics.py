@@ -1,31 +1,55 @@
-def simple_similarity(a, b):
-    a_words = set(a.lower().split())
-    b_words = set(b.lower().split())
+def keyword_overlap(prompt, answer):
+    p = set(prompt.lower().split())
+    a = set(answer.lower().split())
 
-    if not a_words:
+    if not p:
         return 0
 
-    return len(a_words.intersection(b_words)) / len(a_words)
+    return len(p.intersection(a)) / len(p)
+
 
 def length_score(answer):
     words = len(answer.split())
 
-    if words > 80:
+    if words > 120:
         return 1.0
-    elif words > 40:
+    elif words > 80:
+        return 0.85
+    elif words > 50:
         return 0.7
-    elif words > 20:
-        return 0.4
+    elif words > 25:
+        return 0.5
     else:
-        return 0.1
+        return 0.2
+
+
+def structure_score(answer):
+    sentences = answer.split(".")
+    if len(sentences) >= 4:
+        return 1.0
+    elif len(sentences) >= 2:
+        return 0.7
+    else:
+        return 0.3
+
 
 def final_score(prompt, answer):
-    sim = simple_similarity(prompt, answer)
-    length = length_score(answer)
+    k = keyword_overlap(prompt, answer)
+    l = length_score(answer)
+    s = structure_score(answer)
 
-    score = (0.6 * sim + 0.4 * length)
+    # weighted scoring
+    base = (0.4 * k) + (0.35 * l) + (0.25 * s)
 
-    if length < 0.2:
-        score *= 0.5
+    # penalties
+    if l < 0.3:
+        base *= 0.6
+
+    # boost good answers
+    if k > 0.6 and l > 0.7:
+        base *= 1.2
+
+    # normalize to full range
+    score = max(0, min(base, 1))
 
     return round(score * 100, 2)
