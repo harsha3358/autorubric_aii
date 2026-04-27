@@ -34,41 +34,35 @@ def cached_generate(prompt: str):
 async def get_outputs(prompt, answer):
     loop = asyncio.get_event_loop()
 
-    rubric_task = loop.run_in_executor(
-        None, cached_generate, f"Create a short rubric for: {prompt}"
-    )
+    combined_prompt = f"""
+    Generate a short rubric and feedback.
 
-    feedback_task = loop.run_in_executor(
-        None, cached_generate, f"Give concise feedback for: {answer}"
-    )
+    Prompt: {prompt}
+    Answer: {answer}
 
-    rubric, feedback = await asyncio.gather(rubric_task, feedback_task)
+    Output:
+    Rubric:
+    Feedback:
+    """
 
-    return rubric, feedback
+    result = await loop.run_in_executor(None, cached_generate, combined_prompt)
+
+    return result
 
 @app.get("/")
 def home():
     return {"status": "AutoRubric backend running"}
 
-# 🚀 MAIN ENDPOINT
+#  MAIN ENDPOINT
 @app.post("/evaluate")
 async def evaluate(data: Input):
 
-    # parallel LLM calls
-    rubric, feedback = await get_outputs(data.prompt, data.answer)
+    output = await get_outputs(data.prompt, data.answer)
 
-    # scoring
     score = final_score(data.prompt, data.answer)
-
-    # store result
-    cursor.execute(
-        "INSERT INTO results VALUES (?,?,?,?,?)",
-        (str(uuid.uuid4()), data.prompt, data.answer, score, feedback)
-    )
-    conn.commit()
 
     return {
         "score": score,
-        "feedback": feedback,
-        "rubric": rubric
+        "feedback": output,
+        "rubric": "Generated within feedback"
     }
