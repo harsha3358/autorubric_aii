@@ -23,6 +23,7 @@ def keyword_score(prompt, answer):
     prompt_words = set(prompt.lower().split())
     answer_words = set(answer.lower().split())
     common = prompt_words.intersection(answer_words)
+
     return min(len(common) / (len(prompt_words) + 1), 0.5)
 
 def final_score(prompt, answer):
@@ -30,26 +31,19 @@ def final_score(prompt, answer):
     length = length_score(answer)
     keyword = keyword_score(prompt, answer)
 
-    # Base weighted score
-    base = (
-        0.5 * sem +
-        0.3 * length +
-        0.2 * keyword
-    )
+    base = (0.5 * sem + 0.3 * length + 0.2 * keyword)
 
-    # 🔥 HARD PENALTIES
+    # penalties
     if length < 0.2:
-        base *= 0.4   # very short → crush score
-
+        base *= 0.4
     if sem < 0.3:
-        base *= 0.5   # irrelevant → heavy penalty
+        base *= 0.5
 
-    # 🔥 BOOST GOOD ANSWERS
+    # boost good answers
     if sem > 0.75 and length > 0.6:
         base *= 1.2
 
-    # 🔥 SCORE STRETCHING (KEY FIX)
-    # expand mid-range into full 0–100
+    # normalize
     stretched = (base - 0.2) / (0.9 - 0.2)
     stretched = max(0, min(stretched, 1))
 

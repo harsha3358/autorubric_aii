@@ -1,8 +1,10 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-import uuid
-
 from fastapi.middleware.cors import CORSMiddleware
+
+import uuid
+import asyncio
+from functools import lru_cache
 
 from llm import generate
 from metrics import final_score
@@ -10,7 +12,7 @@ from database import cursor, conn
 
 app = FastAPI()
 
-# CORS (IMPORTANT)
+# CORS (important for frontend)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -23,28 +25,46 @@ class Input(BaseModel):
     prompt: str
     answer: str
 
+# 🔥 CACHE LLM CALLS
+@lru_cache(maxsize=100)
+def cached_generate(prompt: str):
+    return generate(prompt)
+
+# 🔥 PARALLEL EXECUTION
+async def get_outputs(prompt, answer):
+    loop = asyncio.get_event_loop()
+
+    rubric_task = loop.run_in_executor(
+        None, cached_generate, f"Create a short rubric for: {prompt}"
+    )
+
+    feedback_task = loop.run_in_executor(
+        None, cached_generate, f"Give concise feedback for: {answer}"
+    )
+
+    rubric, feedback = await asyncio.gather(rubric_task, feedback_task)
+
+    return rubric, feedback
+
+@app.get("/")
+def home():
+    return {"status": "AutoRubric backend running"}
+
+# 🚀 MAIN ENDPOINT
 @app.post("/evaluate")
-def evaluate(data: Input):
+async def evaluate(data: Input):
 
-    # Generate rubric
-    rubric = generate(f"Create a simple rubric for: {data.prompt}")
+    # parallel LLM calls
+    rubric, feedback = await get_outputs(data.prompt, data.answer)
 
-    # Generate feedback
-    feedback = generate(f"""
-Evaluate this answer based on the rubric.
-
-Rubric: {rubric}
-Answer: {data.answer}
-
-Give short feedback.
-""")
-
-    # NEW SCORING SYSTEM
+    # scoring
     score = final_score(data.prompt, data.answer)
 
-    # Save to DB
-    cursor.execute("INSERT INTO results VALUES (?,?,?,?,?)",
-                   (str(uuid.uuid4()), data.prompt, data.answer, score, feedback))
+    # store result
+    cursor.execute(
+        "INSERT INTO results VALUES (?,?,?,?,?)",
+        (str(uuid.uuid4()), data.prompt, data.answer, score, feedback)
+    )
     conn.commit()
 
     return {
