@@ -34,7 +34,7 @@ def hf_generate(prompt):
     return None
 
 
-# 🔥 FALLBACK (LOCAL LOGIC)
+#  FALLBACK (LOCAL LOGIC)
 def fallback_response(prompt, answer):
     return f"""
 Rubric:
@@ -55,5 +55,5 @@ def generate(prompt):
     if output and len(output.strip()) > 20:
         return output
 
-    # 🔥 fallback if model fails
+    # fallback if model fails
     return fallback_response(prompt, prompt)

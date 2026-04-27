@@ -9,7 +9,7 @@ from database import cursor, conn
 
 app = FastAPI()
 
-# ✅ CORS
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -27,7 +27,7 @@ class Input(BaseModel):
 def home():
     return {"status": "running"}
 
-# 🔥 MAIN EVALUATION
+# MAIN EVALUATION
 @app.post("/evaluate")
 def evaluate(data: Input):
 
@@ -76,7 +76,7 @@ Evaluation Rubric
     }
 
 
-# 📊 GET ALL RESULTS
+# GET ALL RESULTS
 @app.get("/results")
 def get_results():
     cursor.execute("SELECT * FROM results")
@@ -95,7 +95,7 @@ def get_results():
     return results
 
 
-# 🔍 GET SINGLE RESULT
+# GET SINGLE RESULT
 @app.get("/results/{record_id}")
 def get_single(record_id: str):
     cursor.execute("SELECT * FROM results WHERE id=?", (record_id,))
@@ -113,7 +113,7 @@ def get_single(record_id: str):
     }
 
 
-# 🧹 CLEAR DATABASE (for demo reset)
+# CLEAR DATABASE 
 @app.delete("/clear")
 def clear_db():
     cursor.execute("DELETE FROM results")
@@ -121,7 +121,7 @@ def clear_db():
     return {"message": "All records deleted"}
 
 
-# 🔥 RENDER PORT FIX
+# RENDER PORT FIX
 if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 10000))
