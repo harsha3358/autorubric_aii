@@ -1,226 +1,167 @@
-<div align="center">
+# AutoRubric AI
 
-# 🍎 AutoRubric AI
+**Intelligent Answer Evaluation System**
 
-### <i>Designing how AI evaluation should feel</i>
-
-<br>
-
-<a href="https://autorubricaii.vercel.app/">
-  <img src="https://img.shields.io/badge/Live%20Demo-View%20Now-black?style=for-the-badge" />
-</a>
-
-<br><br>
-
-<img src="https://img.shields.io/badge/AI-Gemma-orange">
-<img src="https://img.shields.io/badge/Backend-FastAPI-green">
-<img src="https://img.shields.io/badge/UI-Tailwind-blue">
-
-</div>
+AutoRubric AI is a full-stack AI-powered system that evaluates user responses using a multi-metric scoring engine, generates structured rubrics, and provides explainable feedback.
 
 ---
 
-<br>
+## Live Deployment
 
-## ✨ The Experience
+Frontend (Vercel):  
+https://autorubricaii.vercel.app/
 
-<div style="font-size:16px">
+Backend (Render):  
+https://autorubric-aii.onrender.com/
 
-AutoRubric AI is not just about scoring answers.
-It’s about **making AI feedback intuitive, visual, and human-friendly**.
+API Documentation:  
+https://autorubric-aii.onrender.com/docs
 
-</div>
-
-<br>
-
----
-
-## 🎯 What You Do
-
-<div align="center">
-
-| Step | Action         |
-| ---- | -------------- |
-| 1️⃣  | Enter a prompt |
-| 2️⃣  | Add an answer  |
-| 3️⃣  | Click Evaluate |
-
-</div>
-
-<br>
+Database Access (via API):  
+https://autorubric-aii.onrender.com/results
 
 ---
 
-## 💡 What You See
+## Overview
 
-<div align="center">
+AutoRubric AI analyzes a given prompt and answer, then produces:
 
-🎯 <b>Score</b> — instant clarity
-📊 <b>Charts</b> — deeper insight
-🧠 <b>Feedback</b> — meaningful explanation
-📜 <b>Rubric</b> — transparent evaluation
+- Structured evaluation rubric  
+- Multi-dimensional score  
+- Professional feedback  
+- Transparent reasoning  
 
-</div>
-
-<br>
+The system combines deterministic scoring logic with optional AI-assisted evaluation to ensure reliability and scalability.
 
 ---
 
-## 🧠 Why It Feels Different
+## Features
 
-<div style="background:#f5f5f5;padding:15px;border-radius:10px">
-
-Most AI tools overwhelm users with raw output.
-
-AutoRubric AI focuses on:
-
-* ✨ Clarity over complexity
-* 🎯 Focused feedback
-* 🧠 Explainable reasoning
-* ⚡ Smooth interaction
-
-</div>
-
-<br>
+- Multi-metric evaluation (Relevance, Depth, Structure, Clarity)  
+- Explainable scoring with reasoning breakdown  
+- Automatic rubric generation  
+- Real-time evaluation API  
+- Persistent result storage  
+- Fully deployed cloud architecture  
 
 ---
 
-## 🎨 Design Philosophy
+## Architecture
 
-<table>
-<tr>
-<td width="50%">
-
-### 🧭 Clarity First
-
-Every element answers: <b>“What does the user need right now?”</b>
-
-</td>
-
-<td width="50%">
-
-### 🧠 Explainability
-
-Users don’t just get scores —
-they understand them.
-
-</td>
-</tr>
-
-<tr>
-<td>
-
-### 🎯 Visual Hierarchy
-
-Score → Chart → Feedback → Rubric
-
-</td>
-
-<td>
-
-### ✨ Motion
-
-Animations guide attention,
-not distract.
-
-</td>
-</tr>
-</table>
-
-<br>
+Frontend (Vercel)  
+→ FastAPI Backend (Render)  
+→ Evaluation Engine (Python)  
+→ SQLite Database  
 
 ---
 
-## 🧩 Interaction Design
+## Tech Stack
 
-* Smooth transitions between states
-* Typing-style feedback reveal
-* Scrollable insight panels
-* Instant visual updates
+### Frontend
+- HTML5  
+- Tailwind CSS  
+- JavaScript (Vanilla)  
+- Chart.js  
 
-<br>
+### Backend
+- Python  
+- FastAPI  
+- Uvicorn  
+- Pydantic  
 
----
+### Evaluation Engine
+- Custom rule-based scoring system  
+- Multi-metric analysis  
 
-## 🌗 Personalization
+### Database
+- SQLite  
 
-<div align="center">
-
-Light Mode ☀️     |     Dark Mode 🌙
-
-</div>
-
-<br>
-
----
-
-## ⚙️ Behind the Interface
-
-<div style="background:#fafafa;padding:15px;border-radius:10px">
-
-While the UI stays minimal, the system runs:
-
-* 🧠 AI-powered rubric generation
-* 🎯 Multi-factor evaluation engine
-* 📊 Structured scoring system
-* 🧠 Feedback reasoning
-
-</div>
-
-<br>
+### Deployment
+- Vercel (Frontend)  
+- Render (Backend)  
+- GitHub (Version Control)  
 
 ---
 
-## 🚀 Live Demo
+## Evaluation Metrics
 
-<div align="center">
+The system evaluates answers across four key dimensions:
 
-👉 <b><a href="https://autorubricaii.vercel.app/">Try AutoRubric AI</a></b>
+- **Relevance** – Alignment with the prompt  
+- **Depth** – Level of detail and completeness  
+- **Structure** – Logical flow and organization  
+- **Clarity** – Readability and articulation  
 
-<br><br>
+### Final Score Formula
 
-<i>Note: Backend runs locally using a private LLM (Gemma via Ollama)</i>
-
-</div>
-
-<br>
-
----
-
-## 🔮 Future Direction
-
-* Adaptive feedback systems
-* Deeper visual analytics
-* Fully LLM-based grading
-* Cloud deployment
-
-<br>
+Score =  
+0.35 × Relevance +  
+0.30 × Depth +  
+0.20 × Structure +  
+0.15 × Clarity  
 
 ---
 
-## 🧠 Final Thought
+## API Endpoints
 
-<div align="center" style="font-size:18px">
+### POST /evaluate  
+Evaluate a prompt-answer pair  
 
-<b>Good AI gives answers.</b> <b>Great AI helps you understand them.</b>
+# AutoRubric-AI
 
-<br><br>
+## Clone the repository:
 
-<i>This project is built for the second.</i>
+```bash
+git clone https://github.com/harsha3358/AutoRubric-AI.git
+cd AutoRubric-AI/backend
+```
 
-</div>
+## Install dependencies:
 
-<br>
+```bash
+pip install -r requirements.txt
+```
 
----
+## Run backend:
 
-<div align="center">
+```bash
+python main.py
+```
 
-### 👨‍💻 Built with a focus on
+## Open the frontend from the frontend folder.
 
-<b>Design × AI × Usability</b>
-<p align="center">
-  <img src="demo.gif" width="800"/>
-</p>
+## Deployment
 
-</div>
+### Backend (Render)
+
+*   **Root Directory:** `backend`
+*   **Build Command:** `pip install -r requirements.txt`
+*   **Start Command:** `python main.py`
+*   **Environment Variable:**
+    *   `HF_TOKEN` (optional, if using LLM)
+
+### Frontend (Vercel)
+
+*   Deploy frontend folder
+*   Update API URL in `app.js`
+
+## Design Principles
+
+*   Explainability over black-box models
+*   Lightweight and deployable architecture
+*   Deterministic + AI hybrid system
+*   Production-ready design
+
+## Limitations
+
+*   Uses heuristic scoring instead of full semantic embeddings
+*   SQLite is not persistent on free hosting
+*   Free-tier hosting introduces cold-start latency
+
+## Future Improvements
+
+*   LLM-based evaluator (AI judge)
+*   Semantic similarity via embeddings API
+*   Analytics dashboard
+*   PostgreSQL or cloud database integration
+*   User authentication and history tracking
