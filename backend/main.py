@@ -34,23 +34,9 @@ def evaluate(data: Input):
     metrics = evaluate_metrics(data.prompt, data.answer)
     score = final_score(metrics)
 
-    rubric = f"""
-Evaluation Rubric
-
-1. Relevance ({metrics['relevance']}%)
-2. Depth ({metrics['depth']}%)
-3. Structure ({metrics['structure']}%)
-4. Clarity ({metrics['clarity']}%)
-"""
-
-    if score > 85:
-        feedback = "Excellent response with strong clarity, depth, and relevance."
-    elif score > 70:
-        feedback = "Good answer with solid understanding, but could benefit from deeper explanation."
-    elif score > 50:
-        feedback = "Average response with partial understanding. Needs more structure and detail."
-    else:
-        feedback = "Weak response. Lacks clarity, depth, and alignment with the prompt."
+    # Use LLM or robust fallback for feedback and rubric
+    from llm import generate
+    feedback, rubric = generate(data.prompt, data.answer, score)
 
     reasoning = [
         f"Relevance Score: {metrics['relevance']}%",

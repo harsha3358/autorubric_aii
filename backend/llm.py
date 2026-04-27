@@ -8,14 +8,19 @@ HF_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instr
 
 headers = {
     "Authorization": f"Bearer {HF_TOKEN}"
-}
+} if HF_TOKEN else {}
 
-def hf_generate(prompt):
+def hf_generate(prompt, answer):
+    if not HF_TOKEN:
+        return None
+
+    evaluation_prompt = f"[INST] You are an expert AI grader. Evaluate the following student answer based on the assignment prompt. Provide a short constructive feedback paragraph and a Markdown table rubric scoring Clarity, Depth, and Relevance out of 100.\n\nPrompt: {prompt}\nAnswer: {answer} [/INST]"
+
     payload = {
-        "inputs": prompt,
+        "inputs": evaluation_prompt,
         "parameters": {
-            "max_new_tokens": 120,
-            "temperature": 0.7,
+            "max_new_tokens": 250,
+            "temperature": 0.3,
             "return_full_text": False
         }
     }
@@ -27,33 +32,42 @@ def hf_generate(prompt):
             data = res.json()
             if isinstance(data, list):
                 return data[0].get("generated_text", "").strip()
-
     except:
         pass
 
     return None
 
+# FALLBACK (LOCAL LOGIC)
+def fallback_response(prompt, answer, score):
+    if score >= 80:
+        feedback = "Excellent response with strong clarity, depth, and relevance."
+    elif score >= 50:
+        feedback = "Good answer with solid understanding, but could benefit from deeper explanation."
+    else:
+        feedback = "Weak response. Lacks clarity, depth, and alignment with the prompt."
 
-#  FALLBACK (LOCAL LOGIC)
-def fallback_response(prompt, answer):
-    return f"""
-Rubric:
-- Covers key concepts
-- Clear explanation
-- Relevant to prompt
+    rubric = f"""
+### Evaluation Rubric
 
-Feedback:
-The answer addresses the topic but may lack depth or detailed explanation.
-Try adding more examples and structured points.
+| Criteria | Score | Notes |
+| :--- | :--- | :--- |
+| **Relevance** | Calculated | Based on keyword overlap with the prompt |
+| **Depth** | Calculated | Based on the length and detail of the answer |
+| **Structure** | Calculated | Based on sentence formation and paragraphing |
+| **Clarity** | Calculated | Based on vocabulary and readability |
+
+*Note: This rubric was generated using statistical analysis because the AI grading service is currently unavailable.*
 """
+    return feedback, rubric
 
 
-def generate(prompt):
+def generate(prompt, answer, score):
     # Try HuggingFace first
-    output = hf_generate(prompt)
+    output = hf_generate(prompt, answer)
 
     if output and len(output.strip()) > 20:
-        return output
+        # If output is generated, we'll try to split it or just return it as rubric
+        return "AI Generated Feedback", output
 
-    # fallback if model fails
-    return fallback_response(prompt, prompt)
+    # fallback if model fails or HF_TOKEN is missing
+    return fallback_response(prompt, answer, score)
